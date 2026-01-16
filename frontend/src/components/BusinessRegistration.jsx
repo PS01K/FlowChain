@@ -145,11 +145,31 @@ const BusinessRegistration = () => {
     setIsCompleting(true);
     setShowConfetti(true);
 
+    try {
+      // Send data to backend to generate PDF
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('PDF generated successfully:', result.filename);
+        // You can store the filename in localStorage or state for later reference
+        localStorage.setItem('businessRegistrationPDF', result.filename);
+      } else {
+        console.error('Error generating PDF:', result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
+
     // Simulate processing time for dramatic effect
     await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Here you would typically send the data to your backend
-    console.log('Form submitted:', formData);
 
     // Navigate to dashboard
     navigate('/dashboard');
@@ -764,10 +784,10 @@ const BusinessRegistration = () => {
                 <div key={step.title} className="flex flex-col items-center relative">
                   <motion.div
                     className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${isCompleted
-                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                        : isCurrent
-                          ? `bg-gradient-to-r ${step.color} text-white shadow-lg shadow-indigo-500/30`
-                          : 'bg-muted text-muted-foreground'
+                      ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                      : isCurrent
+                        ? `bg-gradient-to-r ${step.color} text-white shadow-lg shadow-indigo-500/30`
+                        : 'bg-muted text-muted-foreground'
                       }`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}

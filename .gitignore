@@ -1,5 +1,6 @@
 # Node dependencies
 backend/node_modules/
+backend/pdfs/*
 
 # Environment files
 .env
