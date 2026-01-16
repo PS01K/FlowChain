@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,6 +24,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 const BusinessRegistration = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -169,8 +171,24 @@ const BusinessRegistration = () => {
       console.error('Error submitting form:', error);
     }
 
+    // Mark business registration as complete in user metadata
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          businessRegistrationComplete: true
+        }
+      });
+      console.log('User metadata updated successfully');
+      
+      // Wait for metadata to sync
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error('Error updating user metadata:', error);
+    }
+
     // Simulate processing time for dramatic effect
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Navigate to dashboard
     navigate('/dashboard');

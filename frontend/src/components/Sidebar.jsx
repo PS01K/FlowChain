@@ -1,7 +1,8 @@
-import { LayoutDashboard, Package, ShoppingCart, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, BarChart3, Settings, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useClerk, useUser } from "@clerk/clerk-react";
 
 const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -15,6 +16,13 @@ export function Sidebar() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
+    const { signOut } = useClerk();
+    const { user } = useUser();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate("/");
+    };
 
     return (
         <aside className="w-64 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-r border-slate-700/50 dark:border-slate-800/50 flex flex-col">
@@ -61,7 +69,20 @@ export function Sidebar() {
             </nav>
 
             {/* Theme Toggle */}
-            <div className="p-4 border-t border-slate-700/50 dark:border-slate-800/50">
+            <div className="p-4 border-t border-slate-700/50 dark:border-slate-800/50 space-y-2">
+                {/* User Info */}
+                {user && (
+                    <div className="px-4 py-2 rounded-lg bg-slate-800/50 mb-2">
+                        <p className="text-xs text-slate-400">Signed in as</p>
+                        <p className="text-sm text-white font-medium truncate">
+                            {user.emailAddresses[0]?.emailAddress}
+                        </p>
+                        <p className="text-xs text-indigo-400 mt-1">
+                            Role: {user.publicMetadata?.role || "user"}
+                        </p>
+                    </div>
+                )}
+                
                 <button
                     onClick={() => setTheme(theme === "light" ? "dark" : "light")}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
@@ -77,6 +98,15 @@ export function Sidebar() {
                             <span className="text-sm font-medium">Light Mode</span>
                         </>
                     )}
+                </button>
+
+                {/* Logout Button */}
+                <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 border border-transparent hover:border-red-500/30"
+                >
+                    <LogOut className="w-5 h-5" />
+                    <span className="text-sm font-medium">Sign Out</span>
                 </button>
             </div>
         </aside>

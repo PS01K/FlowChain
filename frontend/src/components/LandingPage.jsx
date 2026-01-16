@@ -4,9 +4,26 @@ import { AnimatedVisuals } from "./AnimatedVisuals";
 import { ThemeToggle } from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import Spline from '@splinetool/react-spline';
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 export function LandingPage() {
     const navigate = useNavigate();
+    const { isSignedIn } = useAuth();
+    const { user } = useUser();
+
+    const handleGetStarted = () => {
+        if (!isSignedIn) {
+            navigate("/sign-up");
+        } else {
+            // Check if user has completed business registration
+            const hasCompletedRegistration = user?.unsafeMetadata?.businessRegistrationComplete;
+            if (hasCompletedRegistration) {
+                navigate("/dashboard");
+            } else {
+                navigate("/register");
+            }
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/30 overflow-hidden">
@@ -35,7 +52,38 @@ export function LandingPage() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
+                        className="flex items-center gap-4"
                     >
+                        {!isSignedIn ? (
+                            <>
+                                <button
+                                    onClick={() => navigate("/sign-in")}
+                                    className="px-6 py-2 text-gray-700 dark:text-slate-300 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-300"
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    onClick={() => navigate("/sign-up")}
+                                    className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg shadow-indigo-500/30 transition-all duration-300"
+                                >
+                                    Sign Up
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    const hasCompletedRegistration = user?.unsafeMetadata?.businessRegistrationComplete;
+                                    if (hasCompletedRegistration) {
+                                        navigate("/dashboard");
+                                    } else {
+                                        navigate("/register");
+                                    }
+                                }}
+                                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg shadow-indigo-500/30 transition-all duration-300"
+                            >
+                                Go to Dashboard
+                            </button>
+                        )}
                         <ThemeToggle />
                     </motion.div>
                 </div>
@@ -86,7 +134,7 @@ export function LandingPage() {
                             className="flex flex-col sm:flex-row gap-4"
                         >
                             <button
-                                onClick={() => navigate("/register")}
+                                onClick={handleGetStarted}
                                 className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-300 flex items-center justify-center gap-2"
                             >
                                 Get Started
