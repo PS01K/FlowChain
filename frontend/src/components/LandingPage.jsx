@@ -3,6 +3,7 @@ import { Package, ArrowRight, Sparkles } from "lucide-react";
 import { AnimatedVisuals } from "./AnimatedVisuals";
 import { ThemeToggle } from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
+import Spline from '@splinetool/react-spline';
 
 export function LandingPage() {
     const navigate = useNavigate();
@@ -10,13 +11,13 @@ export function LandingPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/30 overflow-hidden">
             {/* Header */}
-            <header className="absolute top-0 left-0 right-0 z-20 px-8 py-6">
+            <header className="absolute top-0 left-0 right-0 z-20 px-8 py-4">
                 <div className="flex items-center justify-between">
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="flex items-center gap-3 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer"
                         onClick={() => navigate("/")}
                     >
                         <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -98,7 +99,7 @@ export function LandingPage() {
                         </motion.div>
 
                         {/* Stats */}
-                        <motion.div
+                        {/* <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.8, delay: 0.7 }}
@@ -116,18 +117,19 @@ export function LandingPage() {
                                 <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">24/7</div>
                                 <div className="text-sm text-gray-600 dark:text-slate-400">Monitoring</div>
                             </div>
-                        </motion.div>
+                        </motion.div> */}
                     </div>
                 </div>
 
                 {/* Right side - Animated visuals */}
-                <div className="relative hidden lg:flex items-center justify-center">
-                    <AnimatedVisuals />
+                <div className="relative hidden lg:flex items-start justify-end ">
+                    <div className="bottom-36 left-10 size-full max-w-3xl scale-125">
+                        <Spline scene="https://prod.spline.design/DaDl95Bgg-CxMdJT/scene.splinecode" />
+                    </div>
                 </div>
             </div>
 
-            {/* Bottom gradient */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/50 to-transparent dark:from-slate-950/50 pointer-events-none" />
+            
         </div>
     );
 }
