@@ -19,6 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { ThemeToggle } from './ThemeToggle';
 
 const BusinessRegistration = () => {
   const navigate = useNavigate();
@@ -685,41 +686,75 @@ const BusinessRegistration = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 relative overflow-hidden">
-      {/* Completion overlay */}
-      {isCompleting && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/30 overflow-hidden">
+      {/* Header */}
+      <header className="absolute top-0 left-0 right-0 z-20 px-8 py-6">
+        <div className="flex items-center justify-between">
           <motion.div
-            className="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center shadow-2xl"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate("/")}
           >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            </motion.div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">🎉 Registration Complete!</h3>
-            <p className="text-muted-foreground mb-4">Setting up your FlowChain AI dashboard...</p>
-            <div className="flex justify-center">
-              <motion.div
-                className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              />
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <Package className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                Flowchain AI
+              </h1>
+              <p className="text-xs text-gray-600 dark:text-slate-400">Supply Chain Intelligence</p>
             </div>
           </motion.div>
-        </motion.div>
-      )}
 
-      {/* Welcome animation */}
-      {/* <motion.div
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <ThemeToggle />
+          </motion.div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <div className="min-h-screen flex items-center justify-center px-8 py-24">
+        <div className="w-full max-w-4xl">
+          {/* Completion overlay */}
+          {isCompleting && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div
+                className="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center shadow-2xl"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-foreground mb-2">🎉 Registration Complete!</h3>
+                <p className="text-muted-foreground mb-4">Setting up your FlowChain AI dashboard...</p>
+                <div className="flex justify-center">
+                  <motion.div
+                    className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* Welcome animation */}
+          {/* <motion.div
         className="fixed top-4 left-1/2 transform -translate-x-1/2 z-20"
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -736,206 +771,217 @@ const BusinessRegistration = () => {
         </motion.div>
       </motion.div> */}
 
-      {/* Confetti effect */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          {Array.from({ length: 30 }, (_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute w-2 h-2 rounded-full ${['bg-yellow-400', 'bg-pink-500', 'bg-blue-500', 'bg-green-400', 'bg-purple-500'][i % 5]
-                }`}
-              initial={{
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-                y: -10,
-                rotate: 0,
-                scale: 0
-              }}
-              animate={{
-                y: (typeof window !== 'undefined' ? window.innerHeight : 800) + 10,
-                rotate: 360,
-                scale: [0, 1, 0]
-              }}
-              transition={{
-                duration: Math.random() * 3 + 2,
-                delay: Math.random() * 0.5,
-                ease: "easeOut"
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      <motion.div
-        className="max-w-2xl mx-auto relative z-10"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isCompleted = index < currentStep;
-              const isCurrent = index === currentStep;
-              const isUpcoming = index > currentStep;
-
-              return (
-                <div key={step.title} className="flex flex-col items-center relative">
-                  <motion.div
-                    className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${isCompleted
-                      ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                      : isCurrent
-                        ? `bg-gradient-to-r ${step.color} text-white shadow-lg shadow-indigo-500/30`
-                        : 'bg-muted text-muted-foreground'
-                      }`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={isCurrent ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ duration: 2, repeat: isCurrent ? Infinity : 0 }}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
-                    {isCurrent && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full border-2 border-white/30"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                    )}
-                  </motion.div>
-                  <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <div className={`text-xs font-medium ${isCurrent ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-muted-foreground'
-                      }`}>
-                      {step.title}
-                    </div>
-                  </motion.div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Progress bar */}
-          <div className="relative mb-4">
-            <div className="w-full bg-muted rounded-full h-2">
-              <motion.div
-                className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-              />
+          {/* Confetti effect */}
+          {showConfetti && (
+            <div className="fixed inset-0 pointer-events-none z-50">
+              {Array.from({ length: 30 }, (_, i) => (
+                <motion.div
+                  key={i}
+                  className={`absolute w-2 h-2 rounded-full ${['bg-yellow-400', 'bg-pink-500', 'bg-blue-500', 'bg-green-400', 'bg-purple-500'][i % 5]
+                    }`}
+                  initial={{
+                    x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+                    y: -10,
+                    rotate: 0,
+                    scale: 0
+                  }}
+                  animate={{
+                    y: (typeof window !== 'undefined' ? window.innerHeight : 800) + 10,
+                    rotate: 360,
+                    scale: [0, 1, 0]
+                  }}
+                  transition={{
+                    duration: Math.random() * 3 + 2,
+                    delay: Math.random() * 0.5,
+                    ease: "easeOut"
+                  }}
+                />
+              ))}
             </div>
-            <motion.div
-              className="absolute top-0 left-0 w-4 h-4 bg-primary rounded-full shadow-lg -translate-x-1"
-              animate={{
-                left: `${(currentStep / (steps.length - 1)) * 100}%`,
-                scale: [1, 1.2, 1]
-              }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            />
-          </div>
-        </div>
+          )}
 
-        {/* Form content */}
-        <Card className="overflow-hidden">
-          <CardHeader className={`bg-gradient-to-r ${steps[currentStep].color} text-white`}>
-            <div className="flex items-center gap-3">
-              {(() => {
-                const Icon = steps[currentStep].icon;
-                return (
+          <motion.div
+            className="max-w-2xl mx-auto relative z-10"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Progress indicator */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                {steps.map((step, index) => {
+                  const Icon = step.icon;
+                  const isCompleted = index < currentStep;
+                  const isCurrent = index === currentStep;
+                  const isUpcoming = index > currentStep;
+
+                  return (
+                    <div key={step.title} className="flex flex-col items-center relative">
+                      <motion.div
+                        className={`relative w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${isCompleted
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                          : isCurrent
+                            ? `bg-gradient-to-r ${step.color} text-white shadow-lg shadow-indigo-500/30`
+                            : 'bg-muted text-muted-foreground'
+                          }`}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={isCurrent ? { scale: [1, 1.05, 1] } : {}}
+                        transition={{ duration: 2, repeat: isCurrent ? Infinity : 0 }}
+                      >
+                        {isCompleted ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          <Icon className="w-5 h-5" />
+                        )}
+                        {isCurrent && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-white/30"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          />
+                        )}
+                      </motion.div>
+                      <motion.div
+                        className="text-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className={`text-xs font-medium ${isCurrent ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-muted-foreground'
+                          }`}>
+                          {step.title}
+                        </div>
+                      </motion.div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Progress bar */}
+              <div className="relative mb-4">
+                <div className="w-full bg-muted rounded-full h-2">
                   <motion.div
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    <Icon className="w-8 h-8" />
-                  </motion.div>
-                );
-              })()}
-              <div>
-                <CardTitle className="text-white">{steps[currentStep].title}</CardTitle>
-                <CardDescription className="text-white/80">
-                  Step {currentStep + 1} of {steps.length} • {steps[currentStep].description}
-                </CardDescription>
+                    className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                  />
+                </div>
+                <motion.div
+                  className="absolute top-0 left-0 w-4 h-4 bg-primary rounded-full shadow-lg -translate-x-1"
+                  animate={{
+                    left: `${(currentStep / (steps.length - 1)) * 100}%`,
+                    scale: [1, 1.2, 1]
+                  }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
               </div>
             </div>
-          </CardHeader>
-          <div className="p-6">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {renderStepContent()}
-              </motion.div>
-            </AnimatePresence>
 
-            {/* Navigation buttons */}
-            <div className="flex justify-between mt-8">
-              <motion.button
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="flex items-center px-6 py-3 bg-muted text-muted-foreground rounded-xl hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
-                whileHover={{ scale: 1.05, x: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </motion.button>
-              {currentStep === steps.length - 1 ? (
-                <motion.button
-                  onClick={handleSubmit}
-                  disabled={!validateStep(currentStep)}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg shadow-green-500/30"
-                  whileHover={{ scale: 1.05, x: 2 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{ boxShadow: ["0 0 0 0 rgba(34, 197, 94, 0.4)", "0 0 0 10px rgba(34, 197, 94, 0)", "0 0 0 0 rgba(34, 197, 94, 0)"] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Trophy className="w-4 h-4 mr-2" />
-                  Complete Registration
-                  <Zap className="w-4 h-4 ml-2" />
-                </motion.button>
-              ) : (
-                <motion.button
-                  onClick={nextStep}
-                  disabled={!validateStep(currentStep)}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl hover:from-primary/90 hover:to-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg shadow-primary/30"
-                  whileHover={{ scale: 1.05, x: 2 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={validateStep(currentStep) ? {
-                    boxShadow: ["0 0 0 0 rgba(99, 102, 241, 0.4)", "0 0 0 10px rgba(99, 102, 241, 0)", "0 0 0 0 rgba(99, 102, 241, 0)"]
-                  } : {}}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                  <motion.div
-                    className="ml-1"
-                    animate={{ x: [0, 3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    ✨
-                  </motion.div>
-                </motion.button>
-              )}
-            </div>
-          </div>
-        </Card>
-      </motion.div>
-    </div>
-  );
+            {/* Form content */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <Card className="overflow-hidden shadow-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
+                <CardHeader className={`bg-gradient-to-r ${steps[currentStep].color} text-white`}>
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const Icon = steps[currentStep].icon;
+                      return (
+                        <motion.div
+                          animate={{ rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        >
+                          <Icon className="w-8 h-8" />
+                        </motion.div>
+                      );
+                    })()}
+                    <div>
+                      <CardTitle className="text-white">{steps[currentStep].title}</CardTitle>
+                      <CardDescription className="text-white/80">
+                        Step {currentStep + 1} of {steps.length} • {steps[currentStep].description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <div className="p-6">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentStep}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {renderStepContent()}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Navigation buttons */}
+                  <div className="flex justify-between mt-8">
+                    <motion.button
+                      onClick={prevStep}
+                      disabled={currentStep === 0}
+                      className="flex items-center px-6 py-3 bg-muted text-muted-foreground rounded-xl hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+                      whileHover={{ scale: 1.05, x: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </motion.button>
+                    {currentStep === steps.length - 1 ? (
+                      <motion.button
+                        onClick={handleSubmit}
+                        disabled={!validateStep(currentStep)}
+                        className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg shadow-green-500/30"
+                        whileHover={{ scale: 1.05, x: 2 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={{ boxShadow: ["0 0 0 0 rgba(34, 197, 94, 0.4)", "0 0 0 10px rgba(34, 197, 94, 0)", "0 0 0 0 rgba(34, 197, 94, 0)"] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <Trophy className="w-4 h-4 mr-2" />
+                        Complete Registration
+                        <Zap className="w-4 h-4 ml-2" />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        onClick={nextStep}
+                        disabled={!validateStep(currentStep)}
+                        className="flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl hover:from-primary/90 hover:to-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg shadow-primary/30"
+                        whileHover={{ scale: 1.05, x: 2 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={validateStep(currentStep) ? {
+                          boxShadow: ["0 0 0 0 rgba(99, 102, 241, 0.4)", "0 0 0 10px rgba(99, 102, 241, 0)", "0 0 0 0 rgba(99, 102, 241, 0)"]
+                        } : {}}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                        <motion.div
+                          className="ml-1"
+                          animate={{ x: [0, 3, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          ✨
+                        </motion.div>
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Bottom gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white/50 to-transparent dark:from-slate-950/50 pointer-events-none" />
+        </div>
+        </div>
+        </div>
+        );
 };
 
-export default BusinessRegistration;
+        export default BusinessRegistration;
 
