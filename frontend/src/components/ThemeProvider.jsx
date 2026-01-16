@@ -1,9 +1,9 @@
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { ThemeProvider as NextThemeProvider } from "next-themes";
 
-export function ThemeProvider({ children }) {
+export function AppThemeProvider({ children }) {
     return (
-        <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <NextThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
             {children}
-        </NextThemesProvider>
+        </NextThemeProvider>
     );
 }
