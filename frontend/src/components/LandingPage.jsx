@@ -122,7 +122,38 @@ export function LandingPage() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
+                        className="flex items-center gap-4"
                     >
+                        {!isSignedIn ? (
+                            <>
+                                <button
+                                    onClick={() => navigate("/sign-in")}
+                                    className="px-6 py-2 text-gray-700 dark:text-slate-300 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-300"
+                                >
+                                    Sign In
+                                </button>
+                                <button
+                                    onClick={() => navigate("/sign-up")}
+                                    className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg shadow-indigo-500/30 transition-all duration-300"
+                                >
+                                    Sign Up
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    const hasCompletedRegistration = user?.unsafeMetadata?.businessRegistrationComplete;
+                                    if (hasCompletedRegistration) {
+                                        navigate("/dashboard");
+                                    } else {
+                                        navigate("/register");
+                                    }
+                                }}
+                                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg shadow-indigo-500/30 transition-all duration-300"
+                            >
+                                Go to Dashboard
+                            </button>
+                        )}
                         <ThemeToggle />
                     </motion.div>
                 </div>
