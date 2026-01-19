@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 
 const businessRegistrationSchema = new mongoose.Schema({
+  // User association
+  userId: { type: String, required: true },
+
   // Business Identity
   businessName: { type: String, required: true },
   legalEntityType: { type: String, required: true },

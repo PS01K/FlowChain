@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import BusinessRegistration from '../models/BusinessRegistration.js';
+import ragService from '../services/ragService.js';
 
 const router = express.Router();
 
@@ -161,7 +162,7 @@ router.post('/register', upload.single('inventoryPDF'), async (req, res) => {
     doc.end();
 
     // Wait for stream to finish
-    stream.on('finish', () => {
+    stream.on('finish', async () => {
       res.json({
         success: true,
         message: 'Business registration data saved to database and PDF generated',
@@ -170,6 +171,19 @@ router.post('/register', upload.single('inventoryPDF'), async (req, res) => {
         filepath: filepath,
         registrationId: newRegistration._id
       });
+
+      // Process PDFs for RAG in background
+      const pdfPaths = [filepath];
+      if (inventoryPDFFilename) {
+        pdfPaths.push(path.join(pdfsDir, inventoryPDFFilename));
+      }
+      const userId = formData.userId; // Use the Clerk userId (email)
+      try {
+        await ragService.processUserPDFs(userId, pdfPaths);
+        console.log('RAG processing completed for user:', userId);
+      } catch (ragError) {
+        console.error('Error processing PDFs for RAG:', ragError);
+      }
     });
 
     stream.on('error', (error) => {

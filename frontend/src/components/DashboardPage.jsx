@@ -88,7 +88,7 @@ export function DashboardPage() {
             </Card>
 
             {/* AI Insights */}
-            <AIInsights />
+            <AIInsights userId={user?.primaryEmailAddress?.emailAddress} />
           </div>
         </main>
       </div>

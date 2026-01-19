@@ -1,0 +1,15 @@
+Inventory Report - Sample Data
+
+Laptop Computer 25 1200.00 45
+Wireless Mouse 150 25.50 120
+USB Flash Drive 200 15.75 80
+External Hard Drive 30 89.99 25
+Bluetooth Headphones 45 79.99 60
+Smartphone Case 300 12.99 200
+Screen Protector 400 8.50 150
+Power Bank 75 34.99 40
+Webcam 20 65.00 15
+Keyboard 60 45.99 35
+
+Total Items: 1325
+Total Value: 5,678.50

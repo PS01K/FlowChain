@@ -1,33 +1,132 @@
 import { Sidebar } from "./Sidebar";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Package, Warehouse, Box, AlertTriangle } from "lucide-react";
-
-const inventoryData = [
-    { id: "SKU-1001", name: "Industrial Bearings", category: "Components", stock: 1250, status: "healthy", location: "Warehouse A" },
-    { id: "SKU-1002", name: "Hydraulic Pumps", category: "Equipment", stock: 87, status: "low", location: "Warehouse B" },
-    { id: "SKU-1003", name: "Control Valves", category: "Components", stock: 2340, status: "overstock", location: "Warehouse A" },
-    { id: "SKU-1004", name: "Electric Motors", category: "Equipment", stock: 456, status: "healthy", location: "Warehouse C" },
-    { id: "SKU-1005", name: "Pressure Sensors", category: "Electronics", stock: 34, status: "critical", location: "Warehouse B" },
-    { id: "SKU-1006", name: "Gear Assemblies", category: "Components", stock: 789, status: "healthy", location: "Warehouse A" },
-    { id: "SKU-1007", name: "Circuit Boards", category: "Electronics", stock: 1890, status: "overstock", location: "Warehouse C" },
-    { id: "SKU-1008", name: "Ball Bearings", category: "Components", stock: 156, status: "healthy", location: "Warehouse B" },
-];
-
-const stockHealthStats = [
-    { title: "Healthy Stock", value: "4,523", subtitle: "Optimal levels", icon: Package, color: "from-green-500 to-green-600" },
-    { title: "Low Stock", value: "142", subtitle: "Needs attention", icon: AlertTriangle, color: "from-yellow-500 to-yellow-600" },
-    { title: "Overstock", value: "87", subtitle: "Excess inventory", icon: Box, color: "from-purple-500 to-purple-600" },
-    { title: "Critical", value: "23", subtitle: "Immediate action", icon: AlertTriangle, color: "from-red-500 to-red-600" },
-];
-
-const warehouseStats = [
-    { name: "Warehouse A", items: 2847, status: "healthy" },
-    { name: "Warehouse B", items: 1923, status: "attention" },
-    { name: "Warehouse C", items: 2005, status: "healthy" },
-];
+import { Package, Warehouse, Box, AlertTriangle, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useUser } from '@clerk/clerk-react';
 
 export function InventoryPage() {
+    const { user } = useUser();
+    const [inventoryData, setInventoryData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (!user?.primaryEmailAddress?.emailAddress) return;
+
+        const fetchInventoryData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/api/analyze/inventory-data/${user.primaryEmailAddress.emailAddress}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    setInventoryData(result.data);
+                } else {
+                    setError(result.message);
+                }
+            } catch (err) {
+                setError('Failed to fetch inventory data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInventoryData();
+    }, [user]);
+
+    if (loading) {
+        return (
+            <div className="flex h-screen bg-gray-50 dark:bg-slate-950">
+                <Sidebar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-slate-400">Loading inventory data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex h-screen bg-gray-50 dark:bg-slate-950">
+                <Sidebar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <AlertTriangle className="w-8 h-8 text-amber-600 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-slate-400">{error}</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-500 mt-2">
+                            Upload inventory documents to see your data here.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Use real data if available, otherwise show sample data
+    const displayData = inventoryData || {
+        inventoryHealth: 0,
+        totalValue: 0,
+        totalItems: 0,
+        overstockCount: 0,
+        understockCount: 0,
+        healthyCount: 0,
+        topSellingItems: [],
+        overstockItems: [],
+        understockItems: []
+    };
+
+    // Warehouse stats derived from inventory data
+    const warehouseStats = [
+        {
+            name: "Main Warehouse",
+            items: Math.floor(displayData.totalItems * 0.6),
+            status: displayData.inventoryHealth > 70 ? "healthy" : "warning"
+        },
+        {
+            name: "Distribution Center",
+            items: Math.floor(displayData.totalItems * 0.3),
+            status: displayData.inventoryHealth > 60 ? "healthy" : "warning"
+        },
+        {
+            name: "Regional Hub",
+            items: Math.floor(displayData.totalItems * 0.1),
+            status: displayData.inventoryHealth > 50 ? "healthy" : "warning"
+        }
+    ];
+
+    const stockHealthStats = [
+        {
+            title: "Healthy Stock",
+            value: displayData.healthyCount.toString(),
+            subtitle: "Optimal levels",
+            icon: Package,
+            color: "from-green-500 to-green-600"
+        },
+        {
+            title: "Understock",
+            value: displayData.understockCount.toString(),
+            subtitle: "Needs replenishment",
+            icon: TrendingDown,
+            color: "from-yellow-500 to-yellow-600"
+        },
+        {
+            title: "Overstock",
+            value: displayData.overstockCount.toString(),
+            subtitle: "Excess inventory",
+            icon: Box,
+            color: "from-purple-500 to-purple-600"
+        },
+        {
+            title: "Inventory Health",
+            value: `${displayData.inventoryHealth.toFixed(1)}%`,
+            subtitle: "Overall score",
+            icon: TrendingUp,
+            color: "from-blue-500 to-blue-600"
+        },
+    ];
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-slate-950">
             {/* Sidebar */}
@@ -97,8 +196,8 @@ export function InventoryPage() {
                                             <p className="text-sm font-medium text-gray-900 dark:text-white">{warehouse.name}</p>
                                             <Badge
                                                 className={`${warehouse.status === "healthy"
-                                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                                        : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                                                     }`}
                                             >
                                                 {warehouse.status}
@@ -121,49 +220,82 @@ export function InventoryPage() {
                                 <table className="w-full">
                                     <thead>
                                         <tr className="border-b border-gray-200 dark:border-slate-700">
-                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">SKU</th>
                                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Product Name</th>
-                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Category</th>
-                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Current Stock</th>
+                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Quantity</th>
+                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Value</th>
+                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Sales</th>
+                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Turnover</th>
                                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Health Status</th>
-                                            <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-slate-400">Location</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {inventoryData.map((item, index) => (
+                                        {displayData.topSellingItems.map((item, index) => (
                                             <tr
-                                                key={index}
+                                                key={`top-${index}`}
                                                 className="border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
                                             >
-                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-mono">{item.id}</td>
-                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">{item.name}</td>
-                                                <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">{item.category}</td>
-                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-semibold">{item.stock.toLocaleString()} units</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-medium">{item.name}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">N/A</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">${item.value?.toLocaleString() || 'N/A'}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">{item.sales?.toLocaleString() || 'N/A'}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">N/A</td>
                                                 <td className="py-4 px-4">
-                                                    <Badge
-                                                        className={`${item.status === "healthy"
-                                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800"
-                                                                : item.status === "low"
-                                                                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800"
-                                                                    : item.status === "critical"
-                                                                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800"
-                                                                        : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
-                                                            }`}
-                                                    >
-                                                        <span className={`inline-block w-1.5 h-1.5 rounded-full mr-2 ${item.status === "healthy" ? "bg-green-500" :
-                                                                item.status === "low" ? "bg-yellow-500" :
-                                                                    item.status === "critical" ? "bg-red-500" :
-                                                                        "bg-purple-500"
-                                                            }`} />
-                                                        {item.status}
+                                                    <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
+                                                        <span className="inline-block w-1.5 h-1.5 rounded-full mr-2 bg-green-500" />
+                                                        healthy
                                                     </Badge>
                                                 </td>
-                                                <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">{item.location}</td>
+                                            </tr>
+                                        ))}
+                                        {displayData.overstockItems.map((item, index) => (
+                                            <tr
+                                                key={`over-${index}`}
+                                                className="border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                            >
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-medium">{item.name}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">{item.currentStock?.toLocaleString() || 'N/A'}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">${item.excessValue?.toLocaleString() || 'N/A'}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">N/A</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">N/A</td>
+                                                <td className="py-4 px-4">
+                                                    <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+                                                        <span className="inline-block w-1.5 h-1.5 rounded-full mr-2 bg-purple-500" />
+                                                        overstock
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {displayData.understockItems.map((item, index) => (
+                                            <tr
+                                                key={`under-${index}`}
+                                                className="border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                            >
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-medium">{item.name}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">{item.currentStock?.toLocaleString() || 'N/A'}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">N/A</td>
+                                                <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">N/A</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600 dark:text-slate-400">N/A</td>
+                                                <td className="py-4 px-4">
+                                                    <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800">
+                                                        <span className="inline-block w-1.5 h-1.5 rounded-full mr-2 bg-yellow-500" />
+                                                        understock
+                                                    </Badge>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
+
+                            {(!displayData.topSellingItems.length && !displayData.overstockItems.length && !displayData.understockItems.length) && (
+                                <div className="text-center py-8">
+                                    <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-600 dark:text-slate-400">No inventory data available</p>
+                                    <p className="text-sm text-gray-500 dark:text-slate-500 mt-2">
+                                        Upload inventory documents to see your stock levels here.
+                                    </p>
+                                </div>
+                            )}
                         </Card>
                     </div>
                 </main>

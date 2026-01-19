@@ -1,14 +1,15 @@
+// Load configuration FIRST
+import { config } from "./config.js";
+
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+
+// Now import routes
 import registerRoute from "./routes/register.js";
 import dashboardRoute from "./routes/dashboard.js";
 import analyzeRoute from "./routes/analyze.js";
 import queryRoute from "./routes/query.js";
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -17,7 +18,7 @@ app.use(express.json());
 // MongoDB connection
 const connectDB = async () => {
     try {
-        const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/flowchain_ai';
+        const mongoURI = config.MONGODB_URI || 'mongodb://localhost:27017/flowchain_ai';
         await mongoose.connect(mongoURI);
         console.log('MongoDB connected successfully');
     } catch (error) {

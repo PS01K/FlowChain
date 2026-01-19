@@ -175,6 +175,11 @@ const BusinessRegistration = () => {
         }
       });
 
+      // Add user ID from Clerk
+      if (user?.primaryEmailAddress?.emailAddress) {
+        submitData.append('userId', user.primaryEmailAddress.emailAddress);
+      }
+
       // Add the PDF file if it exists
       if (formData.inventoryPDF) {
         submitData.append('inventoryPDF', formData.inventoryPDF);

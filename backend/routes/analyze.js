@@ -1,5 +1,6 @@
 import express from 'express';
 import BusinessRegistration from '../models/BusinessRegistration.js';
+import ragService from '../services/ragService.js';
 
 const router = express.Router();
 
@@ -127,6 +128,66 @@ router.post('/recommendations', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error generating recommendations'
+    });
+  }
+});
+
+// AI-powered insights using RAG
+router.post('/ai-insights', async (req, res) => {
+  try {
+    const { userId, query } = req.body;
+
+    console.log('AI Insights request for userId:', userId);
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    const insights = await ragService.getAIInsights(userId, query);
+
+    console.log('AI Insights response:', insights.response.substring(0, 100));
+
+    res.json({
+      success: true,
+      data: insights
+    });
+  } catch (error) {
+    console.error('Error getting AI insights:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating AI insights'
+    });
+  }
+});
+
+// Get inventory data and metrics for a specific user
+router.get('/inventory-data/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    // Get inventory metrics from RAG service
+    const contextChunks = await ragService.query(userId, 'inventory analysis');
+    const inventoryMetrics = await ragService.calculateInventoryMetrics(userId, contextChunks);
+
+    res.json({
+      success: true,
+      data: inventoryMetrics
+    });
+  } catch (error) {
+    console.error('Error getting inventory data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving inventory data'
     });
   }
 });
