@@ -163,6 +163,40 @@ router.post('/ai-insights', async (req, res) => {
   }
 });
 
+// Chat with AI about a specific recommendation
+router.post('/chat', async (req, res) => {
+  try {
+    const { userId, message, recommendationContext } = req.body;
+
+    console.log('Chat request for userId:', userId);
+    console.log('Message:', message);
+    console.log('Recommendation context:', recommendationContext?.title);
+
+    if (!userId || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and message are required'
+      });
+    }
+
+    const response = await ragService.chatAboutRecommendation(userId, message, recommendationContext);
+
+    res.json({
+      success: true,
+      data: {
+        response,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error in chat:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing chat message'
+    });
+  }
+});
+
 // Get inventory data and metrics for a specific user
 router.get('/inventory-data/:userId', async (req, res) => {
   try {

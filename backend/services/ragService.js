@@ -288,7 +288,7 @@ class RAGService {
 
     // Key insights section
     if (keyInsights.length > 0) {
-      response += `## Critical Insights\n\n `;
+      response += `## Critical Insights\n\n`;
       keyInsights.forEach(insight => {
         if (insight.type === 'metric') {
           response += `📊 **${insight.value}** ${insight.context}\n\n`;
@@ -681,6 +681,257 @@ class RAGService {
         { type: 'info', message: 'Consider safety stock optimization', priority: 'Low' }
       ]
     };
+  }
+
+  async chatAboutRecommendation(userId, message, recommendationContext) {
+    console.log('Processing chat about recommendation:', recommendationContext?.title);
+
+    // Build context from the recommendation
+    const recTitle = recommendationContext?.title || 'general recommendation';
+    const recDescription = recommendationContext?.description || '';
+    const recImpact = recommendationContext?.impact || '';
+    const recTimeline = recommendationContext?.timeline || '';
+    const recExpectedResult = recommendationContext?.expectedResult || '';
+
+    // Get relevant document chunks for additional context
+    let documentContext = [];
+    try {
+      documentContext = await this.query(userId, `${recTitle} ${message}`);
+    } catch (error) {
+      console.log('Could not fetch document context:', error.message);
+    }
+
+    // Generate AI response using Gemini
+    try {
+      const response = await this.generateAIChatResponse(message, {
+        title: recTitle,
+        description: recDescription,
+        impact: recImpact,
+        timeline: recTimeline,
+        expectedResult: recExpectedResult,
+        documentContext
+      });
+      return response;
+    } catch (error) {
+      console.error('AI chat generation failed:', error.message);
+      // Fallback to template response if AI fails
+      return this.generateFallbackChatResponse(message, {
+        title: recTitle,
+        description: recDescription,
+        impact: recImpact,
+        timeline: recTimeline,
+        expectedResult: recExpectedResult
+      });
+    }
+  }
+
+  async generateAIChatResponse(question, context) {
+    const { title, description, impact, timeline, expectedResult, documentContext } = context;
+
+    // Build context string from documents
+    const docContextStr = documentContext.length > 0
+      ? `\n\nRelevant business documents context:\n${documentContext.slice(0, 3).join('\n\n')}`
+      : '';
+
+    const prompt = `You are a friendly, helpful supply chain consultant chatting with a business owner. Keep your responses conversational and easy to read.
+
+RECOMMENDATION BEING DISCUSSED:
+- Title: ${title}
+- Description: ${description}
+- Expected Impact: ${impact}
+- Timeline: ${timeline}
+- Expected Result: ${expectedResult}
+${docContextStr}
+
+USER'S QUESTION: ${question}
+
+RESPONSE GUIDELINES:
+- Write like you're talking to a friend - warm, helpful, encouraging
+- Use simple bullet points with • symbol (not markdown dashes)
+- Use emojis naturally 🎯 💡 ✅ to make it friendly
+- Break information into short, scannable sections
+- DO NOT use markdown headers (##), tables, or **bold** syntax
+- Keep paragraphs short (2-3 sentences max)
+- End with a follow-up question to keep the conversation going
+- Be specific and actionable, not generic
+
+Example format:
+Great question! Here's what I'd suggest:
+
+🎯 First Priority:
+• Start with a quick assessment
+• Identify your biggest pain points
+• Get your team's input
+
+💡 Pro tip: Begin with small wins to build momentum!
+
+What specific area would you like to focus on first?
+
+Now respond to the user's question in this conversational style:`;
+
+    // Try multiple models in order of preference
+    const models = ['gemini-2.0-flash-exp', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-pro-latest'];
+
+    for (const modelName of models) {
+      try {
+        console.log(`Trying model: ${modelName}`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+
+        console.log(`AI generated response with ${modelName}, length:`, text.length);
+        return text;
+      } catch (error) {
+        console.log(`Model ${modelName} failed:`, error.message);
+        continue;
+      }
+    }
+
+    // If all models fail, throw to trigger fallback
+    throw new Error('All AI models failed');
+  }
+
+  generateFallbackChatResponse(question, context) {
+    const { title, description, impact, timeline, expectedResult } = context;
+    const questionLower = question.toLowerCase();
+
+    let response = '';
+
+    // More intelligent question detection and response generation
+    if (questionLower.includes('how') && (questionLower.includes('implement') || questionLower.includes('start') || questionLower.includes('begin') || questionLower.includes('do'))) {
+      response = `Great question! Here's how to get started with ${title}:\n\n`;
+      response += `🎯 Phase 1 (Week 1-2):\n`;
+      response += `• Review your current processes\n`;
+      response += `• Identify the biggest opportunities\n`;
+      response += `• Get your team aligned\n\n`;
+      response += `📋 Phase 2 (Week 3-4):\n`;
+      response += `• Set clear success metrics\n`;
+      response += `• Create weekly milestones\n`;
+      response += `• Assign responsibilities\n\n`;
+      response += `🚀 Phase 3 (Week 5+):\n`;
+      response += `• Start with a small pilot\n`;
+      response += `• Collect feedback early\n`;
+      response += `• Scale what works\n\n`;
+      if (timeline) response += `⏰ Expected timeline: ${timeline}\n\n`;
+      response += `💡 Pro tip: Start small and build momentum with quick wins!`;
+    }
+    else if (questionLower.includes('cost') || questionLower.includes('roi') || questionLower.includes('budget') || questionLower.includes('price') || questionLower.includes('invest')) {
+      response = `Let me break down the costs for ${title}:\n\n`;
+      response += `💵 Typical Investment:\n`;
+      response += `• Software/Tools: $5K - $25K\n`;
+      response += `• Training: $2K - $10K\n`;
+      response += `• Implementation: $10K - $40K\n`;
+      response += `• Monthly ongoing: $500 - $3K\n\n`;
+      response += `📈 Expected Returns:\n`;
+      if (impact) response += `• Projected impact: ${impact}\n`;
+      response += `• Typical ROI: 150-400% in year one\n`;
+      response += `• Payback: Usually 4-8 months\n\n`;
+      response += `💡 Money-saving tips:\n`;
+      response += `• Try free trials first\n`;
+      response += `• Phase your investment over time\n`;
+      response += `• Use your team's existing skills\n\n`;
+      response += `Would you like more specific cost estimates for your situation?`;
+    }
+    else if (questionLower.includes('risk') || questionLower.includes('challenge') || questionLower.includes('problem') || questionLower.includes('fail') || questionLower.includes('difficult')) {
+      response = `Good thinking! Here are the main challenges to watch for:\n\n`;
+      response += `⚠️ Common Risks:\n`;
+      response += `• Team resistance to change → Solution: Communicate early and often\n`;
+      response += `• Technical hiccups → Solution: Test thoroughly, have backup plans\n`;
+      response += `• Limited resources → Solution: Start small, prioritize\n`;
+      response += `• Data quality issues → Solution: Clean your data first\n\n`;
+      response += `✅ Keys to Success:\n`;
+      response += `• Get leadership support\n`;
+      response += `• Communicate the "why" clearly\n`;
+      response += `• Build in buffer time\n`;
+      response += `• Check in regularly and adjust\n\n`;
+      response += `💪 Good news: 85%+ of similar projects succeed with proper planning!\n\n`;
+      response += `What specific risks are you most concerned about?`;
+    }
+    else if (questionLower.includes('benefit') || questionLower.includes('result') || questionLower.includes('outcome') || questionLower.includes('gain') || questionLower.includes('advantage')) {
+      response = `Here's what you can expect from ${title}:\n\n`;
+      if (expectedResult) response += `🎯 Main outcome: ${expectedResult}\n\n`;
+      response += `📊 Typical Improvements:\n`;
+      response += `• 20-35% more efficient\n`;
+      response += `• 15-25% cost reduction\n`;
+      response += `• Save 10-20 hours per week\n`;
+      response += `• 95%+ accuracy\n\n`;
+      response += `🌟 Big Picture Benefits:\n`;
+      response += `• Stay ahead of competitors\n`;
+      response += `• Build a foundation for growth\n`;
+      response += `• Make smarter decisions with data\n`;
+      response += `• Your team will thank you!\n\n`;
+      if (impact) response += `📈 Expected impact: ${impact}\n\n`;
+      response += `Which benefit matters most to your business?`;
+    }
+    else if (questionLower.includes('team') || questionLower.includes('who') || questionLower.includes('people') || questionLower.includes('resource') || questionLower.includes('skill')) {
+      response = `Here's the team you'll need for ${title}:\n\n`;
+      response += `👥 Core Roles:\n`;
+      response += `• Project Lead (50-75% time) - Keeps everything on track\n`;
+      response += `• Technical Lead (25-50% time) - Handles the tech side\n`;
+      response += `• Business Analyst (25% time) - Documents requirements\n`;
+      response += `• Key Users (10% time) - Give real-world feedback\n\n`;
+      response += `🎯 Skills to Look For:\n`;
+      response += `• Project management experience\n`;
+      response += `• Supply chain knowledge\n`;
+      response += `• Good communication skills\n`;
+      response += `• Basic data analysis\n\n`;
+      response += `💡 Tip: You probably have these people already! Cross-train rather than hire new.\n\n`;
+      response += `Do you have a team in mind, or need help identifying the right people?`;
+    }
+    else if (questionLower.includes('tool') || questionLower.includes('software') || questionLower.includes('technology') || questionLower.includes('platform')) {
+      response = `Here are some great tools for ${title}:\n\n`;
+      response += `📊 For Analytics:\n`;
+      response += `• Power BI - Great if you use Microsoft\n`;
+      response += `• Tableau - Beautiful visualizations\n`;
+      response += `• Looker - Perfect for Google users\n\n`;
+      response += `⚡ For Automation:\n`;
+      response += `• Zapier - Super easy, no coding needed\n`;
+      response += `• Make - More advanced workflows\n`;
+      response += `• Custom APIs - When you need something specific\n\n`;
+      response += `📋 For Project Management:\n`;
+      response += `• Asana - Great for team collaboration\n`;
+      response += `• Monday.com - Very visual and flexible\n`;
+      response += `• Jira - Best for technical teams\n\n`;
+      response += `💡 Most of these have free trials - try before you buy!\n\n`;
+      response += `What tools are you currently using? I can suggest ones that integrate well.`;
+    }
+    else if (questionLower.includes('time') || questionLower.includes('long') || questionLower.includes('when') || questionLower.includes('duration') || questionLower.includes('schedule')) {
+      response = `Here's a realistic timeline for ${title}:\n\n`;
+      if (timeline) response += `⏰ Overall estimate: ${timeline}\n\n`;
+      response += `📅 Typical Phases:\n`;
+      response += `• Discovery (1-2 weeks) - Understand what you need\n`;
+      response += `• Planning (1-2 weeks) - Map out the approach\n`;
+      response += `• Setup (2-3 weeks) - Configure and test\n`;
+      response += `• Pilot (2-4 weeks) - Try it with a small group\n`;
+      response += `• Full Rollout (2-4 weeks) - Launch to everyone\n`;
+      response += `• Optimization (ongoing) - Keep improving\n\n`;
+      response += `⚡ Want to go faster?\n`;
+      response += `• Run tasks in parallel → saves 30%\n`;
+      response += `• Dedicate a focused team → 2x faster\n`;
+      response += `• Get exec support → faster decisions\n\n`;
+      response += `What's your target deadline? I can help prioritize.`;
+    }
+    else {
+      // General contextual response
+      response = `Thanks for asking about ${title}!\n\n`;
+      if (description) response += `${description}\n\n`;
+      response += `📌 Quick Facts:\n`;
+      if (impact) response += `• Impact: ${impact}\n`;
+      if (timeline) response += `• Timeline: ${timeline}\n`;
+      if (expectedResult) response += `• Expected result: ${expectedResult}\n`;
+      response += `\n🤔 I can help you with:\n`;
+      response += `• "How do I implement this?"\n`;
+      response += `• "What will it cost?"\n`;
+      response += `• "What are the risks?"\n`;
+      response += `• "What benefits can I expect?"\n`;
+      response += `• "Who do I need on my team?"\n`;
+      response += `• "What tools should I use?"\n\n`;
+      response += `What would you like to know more about? 😊`;
+    }
+
+    return response;
   }
 }
 
